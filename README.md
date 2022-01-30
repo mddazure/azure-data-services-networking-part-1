@@ -33,6 +33,8 @@ This Part 1 addresses [Azure Data Factory (v2)](https://docs.microsoft.com/en-us
 - [Public access with Managed VNET and Customer VNET](#public-access-with-managed-vnet-and-customer-vnet)
 - [Private access](#private-access)
 
+Network diagrams are available in Visio [here](images/Data_AI_network.vsdx).
+
 ## Azure Data Factory (v2)
 Azure Data Factory is an extract-transform-load (ETL), extract-load-transform (ELT) and data integration service. It ingests data from sources within or outside of Azure, applies transformations, and writes to data sinks, again within or outside of Azure. Data stores can be Azure Storage, Data Lake or Azure relational and non-relational data bases, or storage and data base services on-premise or in other clouds.
 
