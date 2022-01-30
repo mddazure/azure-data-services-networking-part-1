@@ -22,6 +22,10 @@ This Part 1 addresses [Azure Data Factory (v2)](https://docs.microsoft.com/en-us
 - [Private Access](#private-access)
 
 [Purview](#purview)
+- [Public access](#public-access)
+- [Public access with Customer VNET](#public-access-with-customer-vnet)
+- [Private access](#private-access)
+
 
 [Synapse Analytics](#synapse-analytics)
 - [Public access](#public-access)
