@@ -38,18 +38,27 @@ Network diagrams are available in Visio [here](images/Data_AI_network.vsdx).
 ## Azure Data Factory (v2)
 Azure Data Factory is an extract-transform-load (ETL), extract-load-transform (ELT) and data integration service. It ingests data from sources within or outside of Azure, applies transformations, and writes to data sinks, again within or outside of Azure. Data stores can be Azure Storage, Data Lake or Azure relational and non-relational data bases, or storage and data base services on-premise or in other clouds.
 
-Azure Data Factory is an Azure resource created in the Azure portal, but operated through their own Studio portals.
+Azure Data Factory is an Azure resource created in the Azure portal, but it is operated through its own Studio portal.
 
 Data flows are programmed as Pipelines, logical groupings of activities on Datasets. Datasets represent data structures within data stores. Data stores are represented as Linked services, these define the connection information to data stores where Datasets are stored. Linked services can also represent compute resources external to ADF that can host the execution of an Activity. These elements are constructed, controlled and monitored through the Azure Data Factory Studio web portal.
 
-Activities in ADF are executed on Integration Runtimes. These represent the compute capacity that actually does the work, under control of the management plane operated through Azure Data Factory Studio. ADF has three types of data movement Integration Runtimes:
-- Azure - Auto Resolve or Regional Integration Runtime
+Activities in ADF are executed on Integration Runtimes. These represent the compute capacity that actually does the work, under control of the management plane operated through Azure Data Factory Studio. 
+
+ADF has following types of Integration Runtimes for data movement:
+- Azure - Auto Resolve or Regional - Sub-type Public
   - Run data movement and transformation activities between cloud data stores.
   - Dispatch activites to publically networked Azure PaaS such as Azure Databricks, HDInsight, Machine Learning.
   - Default compute instance managed by ADF.
-  - Location either Auto Resolve, which means that ADF determines the best region [ref Rene Bremer], or pinned to a region at time of creation.
+  - Location either Auto Resolve, which means that ADF determines the region [ref Rene Bremer], or pinned to a region at time of creation.
   - Runs in a shared ADF-owned VNET, invisible to the customer.
-  - Optionally installed in a Managed VNET, which is a customer-dedicated but ADF-owned VNET.
+
+- Azure - Auto Resolve or Regional - Sub-type Managed Virtual Network
+  - Run data movement and transformation activities between cloud data stores.
+  - Dispatch activites to publically networked Azure PaaS such as Azure Databricks, HDInsight, Machine Learning.
+  - Default compute instance managed by ADF.
+  - Location either Auto Resolve, which means that ADF determines the region, or pinned to a region at time of creation.
+  - Runs in a Managed VNET, which is a customer-dedicated but ADF-owned VNET.
+  - Optionally connects to customer resources through Managed Private Endpoints.
 
 - Self-hosted Integration Runtime
   - Run data movement and transformation activities between cloud- and private data stores.
@@ -58,9 +67,22 @@ Activities in ADF are executed on Integration Runtimes. These represent the comp
   - Windows Server VM in a customer-owned VNET in Azure, in another cloud, or a server on-premise.
   - Has the Microsoft Integration Runtime package installed.
 
-- Azure - SSIS (SQL Server Integration Services) Integration Runtime
-  - Compute cluster managed by ADF.
-  - Dedicated to running SSIS packages.
+ADF has also an Integration Runtime type dedicated to running SSIS (SQL Server Integration Services) packages. SSIS IR is dependant on an SSIS Database (SSISDB), which can run on Azure SQL, SQL Managed Instance or SQL Server either on Azure VM or on-premise. 
+The SSIS IR is an ADF-managed compute cluster  supporting following network configurations: 
+- Public
+  - Runs in a shared ADF-owned VNET, invisible to the customer.
+  - Uses public endpoints to access data sources and SSIS DB.
+
+- VNET Join - Standard
+  - Injects the cluster VMSS into customer VNET
+  - Load Balancer with Inbound NAT rules provides inbound control from Azure Batch to cluster instances
+  - SSIS IR can optionally be provided with static Public IPs, or use NAT Gateway for outbound access to data sources and SSIS DB
+  - SSIS IR can use Private Endpoints in VNET for outbound access to data sources and SSIS DB
+
+- VNET Join - Express
+  - Injects the cluster into customer VNET
+- 
+
 
 Following paragraphs describe the network configurations available with ADF.
 
@@ -180,6 +202,34 @@ As a work-around in case Azure Relay connectivity cannot be established, code (o
 
 
 ## Purview
+Azure Purview is data governance service that helps customers manage their data estates across  Azure and other clouds and on-premise.  Purview automates data discovery by providing data scanning and classification as a service for assets across the data estate. Metadata and descriptions of discovered data assets are integrated into a holistic map of the data estate. Atop this map, there are purpose-built apps that create environments for data discovery, access management, and insights about your data landscape.
+
+Where Azure Data Factory is aimed at moving and transforming data, Purview works to catalog and map data. 
+
+Similar to ADF, Purview is an Azure resource created in the Azure portal, but operated through its own Studio portal. 
+
+As in ADF, activities in Purview are executed on Integration Runtimes. These represent the compute capacity that actually does the work, under control of the management plane operated through Purview Studio. Purview has following types of Integration Runtimes:
+- Azure - Auto Resolve - Public
+  - Run data data discovery on Azure data stores.
+  - Default compute instance managed by Purview.
+  - Location is Auto Resolve, which means that Purview determines the region.
+  - Runs in a shared Purview-owned VNET, invisible to the customer.
+  - Is always present, but *not* shown in the Integration Runtimes view under Data Map in the Purview Studio (in contast to ADF, which does show )
+  - 
+- Azure - Auto Resolve or Regional - Managed VNET
+
+  - Optionally installed in a Managed VNET, which is a customer-dedicated but Purview-owned VNET.
+    - When in a Managed VNET
+- Location is either Auto Resolve, which means that Purview determines the best region [ref Rene Bremer], or pinned to a region at time of creation.
+
+- Self-hosted Integration Runtime
+  - Run data movement and transformation activities between cloud- and private data stores.
+  - Dispatch activites to on-premise resources and privately networked Azure PaaS.
+  - Compute instance managed by the customer.
+  - Windows Server VM in a customer-owned VNET in Azure, in another cloud, or a server on-premise.
+  - Has the Microsoft Integration Runtime package installed.
+
+
 
 ### Public access
 This is the default network configuration.
