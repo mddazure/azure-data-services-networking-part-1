@@ -168,7 +168,7 @@ SQL Server Integration Services Runtime injected into the customer VNET requires
 - When using Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
 - When using public endpoints, Paas service firewalls must be set to allow all access.
 
-![image](images/ADFv2-SHIR-Public-customerVNET.png)
+![image](images/ADFv2-SHIR-Public.png)
 
 ### Private Access
 This configuration enables private access from the Self-Hosted Integration Runtime to the ADF control plane, and to ADF Studio via Private Endpoints inserted in the customer VNET. Private access from SHIR to the ADF control plane is through a Private Endpoint to the Datafactory sub-resource of the ADF instance; private access to the Studio is through a Private Endpoint to the Portal sub-resources. These Private Endpoints are created in the Azure portal, on the Settings - Networking page, Private endpoint connections tab.
