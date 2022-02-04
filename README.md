@@ -198,7 +198,7 @@ The Service Bus fqdn's required are not available via the Private Endpoint to th
 When access to these fqdn's is blocked, interactive authoring functionality via Studio on this Integration Runtime is not available and its status will be Running (Limited):
 *Cloud service cannot connect to the integration runtime through service bus. You may not be able to use the Copy Wizard to create data pipelines for copying data from/to on-premises data stores.
 
-To resolve this, ensure there is no connectivity issues with Azure Relay. This requires enabling outbound communication to <>.servicebus.windows.net on Port 443; either directly through this Integration Runtime or by using a Proxy Server.
+To resolve this, ensure there is no connectivity issues with Azure Relay. This requires enabling outbound communication to `<>.servicebus.windows.net on Port 443`, either directly or by using a Proxy Server.
 See Ports and security considerations and Proxy server considerations in the Integration runtime article for details.
 As a work-around in case Azure Relay connectivity cannot be established, code (or) Azure PowerShell to construct the pipelines (no UI authoring).*
 
