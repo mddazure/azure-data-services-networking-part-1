@@ -18,22 +18,22 @@ Network diagrams are available in Visio [here](images/Data_AI_network.vsdx).
 
 ## Contents
 [Azure Data Factory (v2)](#azure-data-factory-v2)
-- [Public access](#public-access)     
-- [Public access with Managed VNET](#public-access-with-managed-vnet)
-- [Public Access with Customer VNET](#public-access-with-customer-vnet)
-- [Private Access](#private-access)
+- [ADFv2 - Public access](#adfv2-public-access)
+- [ADFv2 - Public access with Managed VNET](#adfv2---public-access-with-managed-vnet)
+- [ADFv2 - Public access with customer VNET](#adfv2---public-access-with-customer-vnet)
+- [ADFv2 - Private access](#adfv2---private-access)
 
 [Purview](#purview)
-- [Public access](#public-access)
-- [Public access with Customer VNET](#public-access-with-customer-vnet)
-- [Private access](#private-access)
-
 
 [Synapse Analytics](#synapse-analytics)
-- [Public access](#public-access)
-- [Public access with Managed VNET](#public-access-with-managed-vnet)
-- [Public access with Managed VNET and Customer VNET](#public-access-with-managed-vnet-and-customer-vnet)
-- [Private access](#private-access)
+
+:point_right: ***Legend***
+In the network diagrams below, arrows indicate the direction of TCP connections. This is not necessarily the same as the direction of flow of information. In the context of network infrastructure it is relevant to show "inbound" versus "outbound" at the TCP level. 
+
+Color coding of flows:
+- Green - Control and management.
+- Red - Customer data.
+- Blue - Meta data of customer data.
 
 ## Azure Data Factory (v2)
 Azure Data Factory is an extract-transform-load (ETL), extract-load-transform (ELT) and data integration service. It ingests data from sources within or outside of Azure, applies transformations, and writes to data sinks, again within or outside of Azure. Data stores can be Azure Storage, Data Lake or Azure relational and non-relational data bases, or storage and data base services on-premise or in other clouds.
@@ -45,14 +45,14 @@ Data flows are programmed as Pipelines, logical groupings of activities on Datas
 Activities in ADF are executed on Integration Runtimes. These represent the compute capacity that actually does the work, under control of the management plane operated through Azure Data Factory Studio. 
 
 ADF has following types of Integration Runtimes for data movement:
-- Azure - Auto Resolve or Regional - Sub-type Public
+- ##### Azure - Auto Resolve or Regional - Sub-type Public
   - Run data movement and transformation activities between cloud data stores.
   - Dispatch activites to publically networked Azure PaaS such as Azure Databricks, HDInsight, Machine Learning.
   - Default compute instance managed by ADF.
   - Location either Auto Resolve, which means that ADF determines the region [ref Rene Bremer], or pinned to a region at time of creation.
   - Runs in a shared ADF-owned VNET, invisible to the customer.
 
-- Azure - Auto Resolve or Regional - Sub-type Managed Virtual Network
+- ##### Azure - Auto Resolve or Regional - Sub-type Managed Virtual Network
   - Run data movement and transformation activities between cloud data stores.
   - Dispatch activites to publically networked Azure PaaS such as Azure Databricks, HDInsight, Machine Learning.
   - Default compute instance managed by ADF.
@@ -60,41 +60,40 @@ ADF has following types of Integration Runtimes for data movement:
   - Runs in a Managed VNET, which is a customer-dedicated but ADF-owned VNET.
   - Optionally connects to customer resources through Managed Private Endpoints.
 
-- Self-hosted Integration Runtime
+- ##### Self-hosted Integration Runtime
   - Run data movement and transformation activities between cloud- and private data stores.
   - Dispatch activites to on-premise resources and privately networked Azure PaaS.
   - Compute instance managed by the customer.
   - Windows Server VM in a customer-owned VNET in Azure, in another cloud, or a server on-premise.
   - Has the Microsoft Integration Runtime package installed.
 
-ADF has also an Integration Runtime type dedicated to running SSIS (SQL Server Integration Services) packages. SSIS IR is dependant on an SSIS Database (SSISDB), which can run on Azure SQL, SQL Managed Instance or SQL Server either on Azure VM or on-premise. 
-The SSIS IR is an ADF-managed compute cluster  supporting following network configurations: 
-- Public
+
+
+ADF has a separte Integration Runtime type dedicated to running SSIS (SQL Server Integration Services) packages. 
+
+[SQL Server Integration Services](https://docs.microsoft.com/en-us/sql/integration-services/sql-server-integration-services?view=sql-server-ver15) is a platform for building enterprise-level data integration and data transformations solutions. Use Integration Services to solve complex business problems by copying or downloading files, loading data warehouses, cleansing and mining data, and managing SQL Server objects and data.
+
+SSIS IR is dependant on an SSIS Database (SSISDB), which can run on Azure SQL, SQL Managed Instance or SQL Server either on Azure VM or on-premise. 
+The SSIS IR is an ADF-managed compute cluster supporting following network configurations: 
+- ##### Public
   - Runs in a shared ADF-owned VNET, invisible to the customer.
   - Uses public endpoints to access data sources and SSIS DB.
+- ##### Standard VNET Injection
+  - *Injects* SSIS IR cluster Virtual Machine Scale Set into the customer VNET, instance NICs show as Connected devices in the VNET.
+  - Deploys Load Balancer with Inbound NAT rules, to provide *inbound* control from Azure Batch to cluster instances.
+  - Attaches a Network Security Group to the Network Interfaces of the IR instances allowing inbound to ports 29876-29877 from BatchNodeManagement.
+  - Requires outbound public access on ports 80, 443 and 445 to service tag AzureCloud for access to dependencies (Blob and File Storage, Azure Container Registry, Event Hub).
+  - SSIS IR can optionally be provided with static Public IPs, or use NAT Gateway for outbound access to data sources and SSIS DB.
+  - SSIS IR can optionally use Private Endpoints in VNET for outbound access to data sources and SSIS DB.
+  - Documentation: [Standard virtual network injection method](https://docs.microsoft.com/en-us/azure/data-factory/azure-ssis-integration-runtime-standard-virtual-network-injection)
+- ##### Express VNET Injection (Preview)
+  - SSIS IR instances run as containers on pre-provisioned VMs in an ADF-owned VNET.
+  - Containers are switched into the customer's VNET using [SWIFT](https://microsoft.sharepoint.com/teams/swiftdashboard9) (fast VNET switching) when the customer submits an SSIS IR Express provisioning request in Studio.
+  - Express VNET injection provisioning is faster than Standard (5 vs 30 minutes), but prerequisites and restrictions apply, see documentation: [Express virtual network injection method (Preview)](https://docs.microsoft.com/en-us/azure/data-factory/azure-ssis-integration-runtime-express-virtual-network-injection)
+ 
+SSIS IR is only available for deployment in Azure, there is no self-hosted version.
 
-- VNET Join - Standard
-  - Injects the cluster VMSS into customer VNET
-  - Load Balancer with Inbound NAT rules provides inbound control from Azure Batch to cluster instances
-  - SSIS IR can optionally be provided with static Public IPs, or use NAT Gateway for outbound access to data sources and SSIS DB
-  - SSIS IR can use Private Endpoints in VNET for outbound access to data sources and SSIS DB
-
-- VNET Join - Express
-  - Injects the cluster into customer VNET
-- 
-
-
-Following paragraphs describe the network configurations available with ADF.
-
-:point_right: ***Legend***
-Arrows indicate the direction of TCP connections, which is not necessarily the same as the direction of the flow of information. In the context of network infrastructure it is relevant to show "inbound" versus "outbound" at the TCP level. 
-
-- Green - Control and management.
-- Red - Customer data.
-- Blue - Meta data of customer data.
-
-
-### Public access
+### ADFv2 Public access
 This is the default network configuration.
 
 :point_right:***Properties***
@@ -107,7 +106,7 @@ This is the default network configuration.
 
 ![image](images/ADFv2-AzureIR-Public.png)
 
-### Public access with Managed VNET 
+### ADFv2 Public access with Managed VNET 
 This configuration provides the option to place Azure AutoResolve Integration Runtimes in a Managed VNET. This is a dedicated VNET not shared with other customer's Runtime instances, but it is still controlled by ADF. The VNET is not visible to the customer and cannot be peered or otherwise connected to the customer's network environment. 
 
 ![image](images/ADFv2-AzureIR-ManagedVNET-portal.png)
@@ -144,7 +143,7 @@ A Managed Private Endpoint from the Managed VNET can connect to [Private Link Se
 
 ![image](images/ADFv2-AzureIR-ManagedVNET-PrivateLink.png)
 
-### Public Access with Customer VNET
+### ADFv2 Public Access with Customer VNET
 This configuration uses a customer-owned VM in a VNET to execute the Integration Runtime activities. The VM must have the Microsoft Integration Runtime package installed. The Self-Hosted Integration Runtime (SHIR) is defined in the Studio; this returns an authentication key that must be entered when configuring the SHIR.
 
 ![image](images/ADFv2-SHIR-studio.png)
@@ -170,7 +169,7 @@ SQL Server Integration Services Runtime injected into the customer VNET requires
 
 ![image](images/ADFv2-SHIR-Public.png)
 
-### Private Access
+### ADFv2 Private Access
 This configuration enables private access from the Self-Hosted Integration Runtime to the ADF control plane, and to ADF Studio via Private Endpoints inserted in the customer VNET. Private access from SHIR to the ADF control plane is through a Private Endpoint to the Datafactory sub-resource of the ADF instance; private access to the Studio is through a Private Endpoint to the Portal sub-resources. These Private Endpoints are created in the Azure portal, on the Settings - Networking page, Private endpoint connections tab.
 
 ![image](images/ADFv2-Portal+DF-PE-portal.png)
@@ -235,28 +234,28 @@ As in ADF, activities in Purview are executed on Integration Runtimes. These rep
 
 
 
-### Public access
+### Purview Public access
 This is the default network configuration.
 
 ![image](images/Purview-Public.png)
 
-### Public access with Customer VNET
+### Purview Public access with Customer VNET
 
 ![image](images/Purview-Public-SHIR.png)
 
-### Private access
+### Purview Private access
 
 ![image](images/Purview-Private-SHIR.png)
 
 
 ## Synapse Analytics
 
-### Public access
+### Synapse Public access
 This is the default network configuration.
 
 ![image](images/Synapse-Public.png)
 
-### Public access with Managed VNET 
+### Synapse Public access with Managed VNET 
 
 Managed VNET
 
@@ -266,10 +265,10 @@ Managed VNET + Managed PE
 
 ![image](images/Synapse-Public-ManagedVNET-ManagedPE.png)
 
-### Public access with Managed VNET and Customer VNET
+### Synapse Public access with Managed VNET and Customer VNET
 
 ![image](images/Synapse-Public-ManagedVNET-ManagedPE-SHIR.png)
 
-### Private access
+### Synapse Private access
 
 ![image](images/Synapse-Private-ManagedVNET-ManagedPE-SHIR.png)
