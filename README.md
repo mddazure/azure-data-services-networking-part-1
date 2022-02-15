@@ -1,16 +1,16 @@
 # Networking for Azure Data & Analytics Services - Part 1
-Azure features quite a few of services for the manipulation and analysis of data. These services are functionally different and serve different purposes (albeit with some overlap), but there are common themes between them from an infrastructure perspective:
+Azure features a number of services for manipulation and analysis of data. These services are functionally different and serve different purposes (with some overlap), but there are common themes between them from an infrastructure perspective:
 - A multi-tenant control plane, operated through a GUI presented in a web portal.
 - A data plane running on customer-dedicated compute
 - The data plane processes customer data stored in Azure PaaS, on-premise or in other clouds.
 
 The default network strategy for these services is to use public, internet facing endpoints for both the compute and data planes, with security guaranteed through strong authentication, authorization and encryption. This provides for great ease of use "out-of-the-box", as there are no network boundaries or restrictions to contend with.
 
-However, customers are concerned about the security of their data when public endpoints, foreign compute instances attached to their network and multi-tenant service components are involved. Enterprises often have security policies in place requiring data be accessed through private network endpoints only. Some also restrict public access to service control planes.
+However, customers are concerned about the security of their data when public endpoints, foreign compute instances attached to their network and multi-tenant service components are involved. Enterprises often have security policies that require data to be accessed through private network endpoints only. Some also restrict public access to service control planes.
 
-In response to customer requirements regarding network access to data and control planes, features and functions have been added to Data & Analytics services over time. These allachieve varying levels of private and restricted access to control and control, but implementations differ between services.
+In response to customer requirements and concerns over network access to data and control planes, features and functions have been added to Data & Analytics services over time. These achieve varying levels of private and restricted access to data and control, but implementations differ between services.
 
-This two-part article aims to summarize networking functionality across Azure Data & Analytics Services in a consistent format. 
+This two-part article aims to summarize networking functionality across Azure Data & Analytics Services in a consistent format. It is not intended to replace service documentation published 
 
 This Part 1 addresses [Azure Data Factory (v2)](https://docs.microsoft.com/en-us/azure/data-factory/), [Purview](https://docs.microsoft.com/en-us/azure/purview/) and [Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/). Part 2 will cover HDInsight, Databricks and Azure Machine Learning.
 
