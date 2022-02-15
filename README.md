@@ -44,6 +44,8 @@ Data flows are programmed as Pipelines, logical groupings of activities on Datas
 
 Activities in ADF are executed on Integration Runtimes. These represent the compute capacity that actually does the work, under control of the management plane operated through Azure Data Factory Studio. 
 
+#### Runtimes - Data Movement
+
 ADF has following types of Integration Runtimes for data movement:
 - ##### Azure - Auto Resolve or Regional - Sub-type Public
   - Run data movement and transformation activities between cloud data stores.
@@ -67,7 +69,7 @@ ADF has following types of Integration Runtimes for data movement:
   - Windows Server VM in a customer-owned VNET in Azure, in another cloud, or a server on-premise.
   - Has the Microsoft Integration Runtime package installed.
 
-
+#### Runtimes - SSIS
 
 ADF has a separte Integration Runtime type dedicated to running SSIS (SQL Server Integration Services) packages. 
 
