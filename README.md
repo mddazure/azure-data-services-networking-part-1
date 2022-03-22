@@ -103,7 +103,10 @@ This is the default network configuration.
 - Azure and Azure-SSIS Integration Runtime compute instances are managed by ADF.
 - Integration Runtimes access data stores over public endpoints.
 - Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
-- Azure Paas service firewalls on data stores must be set to allow all access. It is not possible to restrict access to ADF managed compute only.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. 
+- Azure Paas service firewalls on data stores can be may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
+must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
+- It is not possible to restrict access to ADF managed runtimes belonging to a specific ADF account. Use Managed VNET with Managed Private Endpoints or a Self-Hosted Integration Runtime is network-level access restriction to a specific runtime instance is required. 
   
 
 ![image](images/ADFv2-AzureIR-Public.png)
@@ -134,10 +137,10 @@ Managed Private Endpoints are not directly visible to the customer in the Azure 
 - Azure Auto Resolve Integration Runtime compute instances are managed by ADF and are deployed in an ADF-managed, customer-dedicated VNET.
 - Azure SSIS Integration Runtime cannot be deployed in a Managed VNET.
 - Runtimes can access data stores over both Managed Private Endpoints and public endpoints.
-- Outbound traffic to public endpoints and internet is sourced from Public IP in the .general AzureCloud.{region} ranges.
+- Outbound traffic to public endpoints and internet is sourced from a Public IP in the general AzureCloud.{region} ranges.
 - ADF takes care of the Private DNS resolution for the Managed Private Endpoints.
 - When using Managed Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
-- When using public endpoints, Paas service firewalls must be set to allow all access. 
+- When not using Managed Private Endpoints, Azure Paas service firewalls on data stores can be may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account." must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
 
 ![image](images/ADFv2-AzureIR-ManagedVNET.png)
 
@@ -197,35 +200,39 @@ Setting Network access to Private endpoint on the Settings - Networking page ens
 The Service Bus fqdn's required are not available via the Private Endpoint to the Datafactory sub-resource, and public outbound access to these fqdn's must be allowed. This set of fqdn's is available through the View Service URLs button, on the Nodes tab on the Integration Runtime status page in Studio. 
 
 When access to these fqdn's is blocked, interactive authoring functionality via Studio on this Integration Runtime is not available and its status will be Running (Limited):
-*Cloud service cannot connect to the integration runtime through service bus. You may not be able to use the Copy Wizard to create data pipelines for copying data from/to on-premises data stores.
 
+***Cloud service cannot connect to the integration runtime through service bus. You may not be able to use the Copy Wizard to create data pipelines for copying data from/to on-premises data stores.
 To resolve this, ensure there is no connectivity issues with Azure Relay. This requires enabling outbound communication to `<>.servicebus.windows.net on Port 443`, either directly or by using a Proxy Server.
 See [Ports and firewalls](https://docs.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime?tabs=data-factory#ports-and-firewalls) in the Integration runtime article for details.
-As a work-around in case Azure Relay connectivity cannot be established, code (or) Azure PowerShell to construct the pipelines (no UI authoring).*
+As a work-around in case Azure Relay connectivity cannot be established, code (or) Azure PowerShell to construct the pipelines (no UI authoring).***
 
 :exclamation:Self-Hosted Integration Runtime requires public outbound access via to download.microsoft.com for updates of Windows Server.
 
 
 ## Purview
-Azure Purview is data governance service that helps customers manage their data estates across  Azure and other clouds and on-premise.  Purview automates data discovery by providing data scanning and classification as a service for assets across the data estate. Metadata and descriptions of discovered data assets are integrated into a holistic map of the data estate. Atop this map, there are purpose-built apps that create environments for data discovery, access management, and insights about your data landscape.
+Azure Purview is data governance service that helps customers manage their data estates across Azure and other clouds and on-premise.  Purview automates data discovery by providing data scanning and classification as a service for assets across the data estate. Metadata and descriptions of discovered data assets are integrated into a holistic map of the data estate. This map is the basis for data discovery, access management, and insights about the data landscape.
 
-Where Azure Data Factory is aimed at moving and transforming data, Purview works to catalog and map data. 
+![image](https://docs.microsoft.com/en-us/azure/purview/media/overview/high-level-overview.png)
 
-Similar to ADF, Purview is an Azure resource created in the Azure portal, but operated through its own Studio portal. 
+Similar to ADF, Purview is an Azure resource created in the Azure portal, but is operated through its own Studio portal. 
 
-As in ADF, activities in Purview are executed on Integration Runtimes. These represent the compute capacity that actually does the work, under control of the management plane operated through Purview Studio. Purview has following types of Integration Runtimes:
+Where Azure Data Factory is aimed at moving and transforming data, Purview works to catalog and map data. It scans customer's data sources to capture technical metadata like names, file size, columns etc. It also captures schema for structured data sources. This information is ingested and processed to produce Data Maps, Catalogs and Insights. 
+
+A Purview account relies on a managed Storage account and a managed Event Hubs namespace for ingestion of scanned metadata. These are created with the Purview account and are located in a separate resource group named {pruviewaccountname}-managed.
+
+As in ADF, activities in Purview are executed on Integration Runtimes. These represent the compute capacity that actually does the work, under control of the management plane operated through Purview Studio.
+Purview has following types of Integration Runtimes:
 - Azure - Auto Resolve - Public
   - Run data data discovery on Azure data stores.
   - Default compute instance managed by Purview.
   - Location is Auto Resolve, which means that Purview determines the region.
   - Runs in a shared Purview-owned VNET, invisible to the customer.
-  - Is always present, but *not* shown in the Integration Runtimes view under Data Map in the Purview Studio (in contast to ADF, which does show )
-  - 
+  - Is always present, but *not* shown in the Integration Runtimes view under Data Map in the Purview Studio (in contrast to ADF, which does always show the Public Integration Runtime).
+   
 - Azure - Auto Resolve or Regional - Managed VNET
 
   - Optionally installed in a Managed VNET, which is a customer-dedicated but Purview-owned VNET.
-    - When in a Managed VNET
-- Location is either Auto Resolve, which means that Purview determines the best region [ref Rene Bremer], or pinned to a region at time of creation.
+  - Location is either Auto Resolve, which means that Purview determines the best region [ref Rene Bremer], or pinned to a region at time of creation.
 
 - Self-hosted Integration Runtime
   - Run data movement and transformation activities between cloud- and private data stores.
@@ -234,23 +241,114 @@ As in ADF, activities in Purview are executed on Integration Runtimes. These rep
   - Windows Server VM in a customer-owned VNET in Azure, in another cloud, or a server on-premise.
   - Has the Microsoft Integration Runtime package installed.
 
-
+Integration runtimes must have network access to the managed Storage account and Event Hubs namespace used for ingestion, through either public or private endpoints.
 
 ### Purview Public access
 This is the default network configuration.
 
+:point_right:***Properties***
+- The Studio web portal at https://web.purview.azure.com/ is accessible over the internet.
+- Azure AutoResolve Public Integration Runtime is deployed in a shared VNET managed by Purview.  
+:exclamation:The default Public Azure Integration Runtime is always present but does *not* show in the Integration runtimes view in Purview Studio (Data Map -> Integration runtimes) 
+- Integration Runtimes access customer data stores and managed resources for ingestion over public endpoints.
+- Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+- Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
+must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
+- It is not possible to restrict access to Purview managed runtimes belonging to a specific Purview account. Use Managed VNET with Managed Private Endpoints or a Self-Hosted Integration Runtime if network-level access restriction to a specific runtime instance is required.
+
+
 ![image](images/Purview-Public.png)
 
+### Purview Public access with Managed VNET
+Similar to ADFv2, Purview has the ability to install the Azure Integration Runtime in a Managed VNET. This is a dedicated VNET not shared with other customer's Runtime instances, but it is still controlled by Purview. The VNET is not visible to the customer and cannot be peered or otherwise connected to the customer's network environment. Contrary to ADFv2, there is no option to enable Managed VNET at the account level in Azure Portal. Managed VNET is the default / only selection available when creating additional Azure Runtimes in Purview Studio. A Public type Integration Runtime is always present (but not shown in Studio), any additional Runtimes will be of type Managed VNET.
+
+![image](images/Purview-AzureIR-ManagedVNET-portal.png)
+
+Creating an Integration Runtime in a Managed VNET automatically provisions Managed Private Endpoints for the Purview Account and managed Storage account. These need to be approved in the Azure portal. It is also possible to deploy Managed Private Endpoints to the customer's data sources in the Managed VNET.
+
+![image](images/Purview-AzureIR-ManagedPEs-portal.png)
+
+:point_right: ***Properties***
+- The Studio web portal at https://web.purview.azure.com is accessible over the internet.
+- Azure AutoResolve or Regional Integration Runtime compute instances are managed by Purview and are deployed in an Purview-managed, customer-dedicated VNET.
+- Runtimes can access data stores over both Managed Private Endpoints and public endpoints.
+- Ingestion is over Managed Private Endpoints.
+- Outbound traffic to public endpoints and internet is sourced from a Public IP in the general AzureCloud.{region} ranges.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+- Purview takes care of the Private DNS resolution for the Managed Private Endpoints.
+- When using Managed Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
+- When not using Managed Private Endpoints, Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account." must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
+
+
+![image](images/Purview-AzureIR-ManagedVNET.png)
+
 ### Purview Public access with Customer VNET
+This configuration uses a customer-owned VM in a VNET to execute the Integration Runtime activities. The Microsoft Integration Runtime package that must be installed on the VM is the same as for ADFv2. The Self-Hosted Integration Runtime (SHIR) is defined in the Studio. 
+
+![image](images/Purview-SHIR-studio.png)
+
+Defining a SHIR in Studio returns an authentication key that must be entered in Microsoft Integration Runtime Configuration Manager on the SHIR VM.
+
+![image](images/Purview-SHIR-enterkey.png)
+
+Azure Integration Runtimes, both public and in Managed VNET, can be combined with SHIRs in customer VNETs in the same Purview account.
+
+The control channel of Self-Hosted Integration Runtime requires TLS-secured *outbound* connections *only*, sourced from its Public IP address, to the Purview control plane and to Azure Relay via Service Bus.
+
+Ingestion can be over public endpoints or over Private Endpoints. The ingestion private endpoint connection is created from the Purview account page in the Azure portal, under Networking.
+
+![image](images/Purview-ingestion-PE-portal.png)
+
+
+:point_right: ***Properties***
+- The Studio web portal at https://web.purview.azure.com is accessible over the internet.
+- Self Hosted Integration Runtime application runs on customer VMs in a customer VNET.
+- SHIRs can access customer data stores over both Private Endpoints injected in the customer VNET and public endpoints.
+- SHIRs can access the ingestion resources over both Ingestion Private Endpoints injected in the VNET and public endpoints.
+- Outbound traffic to public endpoints and internet is sourced from the from the SHIR VM's Public IP.
+- Customer must manage DNS resolution for Private Endpoints, either through Private DNS Zones or custom DNS.
+- When using Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
+- When using public endpoints, Paas service firewalls must be set to allow access from the SHIR's public IP address.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses, and cannot be filtered by the Storage account firewall.
 
 ![image](images/Purview-Public-SHIR.png)
 
 ### Purview Private access
+This configuration sets Public network access to Deny on the Purview account.
+
+![image](images/Purview-deny-public-portal.png)
+
+This enables private-only client access to the Studio portal, through a Private Endpoint connection to the Portal and Account sub-resources of the Purview account. Studio access from on-premise can be achieved through VPN or ExpreesRoute connections to the VNET where the PE's to the Portal and Account are located.
+Private access from SHIR to the Purview control plane is through a Private Endpoint to the Account sub-resource. These Private Endpoints are created in the Azure portal under the Purview account, on the Settings - Networking page, Private endpoint connections tab.
+
+Ingestion is through the Ingestion Private Endpoint Connection, which consists of Private Endpoints to blob- and queue storage in the managed Storage account, and to the managed Event Hub namespace.
+
+:point_right: ***Properties***
+- The Studio web portal at https://web.purview.azure.com is only accessible via Private Endpoints.
+- Self Hosted Integration Runtime application runs on customer VMs in a customer VNET. A Private Endpoint to the Account subresource must be accessible, either in the same or in a peered VNET.
+- Outbound internet access from SHIR is not needed for Purview to operate, but is optional to:
+  - Download Center for Windows and application updates.
+  - Azure Relay (via Service Bus) for interactive authoring and connection test functions.
+- SHIRs can access customer data stores over both Private Endpoints injected in the customer VNET, and over public endpoints.
+- SHIRs can access the ingestion resources over both Ingestion Private Endpoints injected in the VNET and over public endpoints.
+- Outbound traffic to public endpoints and internet is sourced from the from the SHIR VM's Public IP.
+- Customer must manage DNS resolution for Private Endpoints, either through Private DNS Zones or custom DNS.
+- When using Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
+- When using public endpoints, Paas service firewalls must be set to allow access from the SHIR's public IP address.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses, and cannot be filtered by the Storage account firewall.
+
+When the customer has data sources in multiple regions, it is recommended to deploy SHIRs in each region. This minimizes  network latency for data flows between sources and SHIRs, optimizing scan performance. Only metadata resulting from scans are sent cross-region to central ingestion resources.
+
 
 ![image](images/Purview-Private-SHIR.png)
 
 
 ## Synapse Analytics
+Azure Synapse Analytics combines SQL-based data warehousing (fka SQL Data Warehouse) with Apache Spark big data analytics, Kusto Data Explorer for log- and timeseries analytics, and Data integration ETL/ELT pipeline functionality. 
+
+Azure Synapse 
+
 
 ### Synapse Public access
 This is the default network configuration.
