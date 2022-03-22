@@ -24,8 +24,17 @@ Network diagrams are available in Visio [here](images/Data_AI_network.vsdx).
 - [ADFv2 - Private access](#adfv2---private-access)
 
 [Purview](#purview)
+- [Purview - Public access](#purview-public-access)
+- [Purview - Public access with Managed VNET](#purview-public-access-with-managed-vnet)
+- [Purview - Public access with Customer VNET](#purview-public-access-with-customer-vnet)
+- [Purview - Private access](#purview-private-access)
 
 [Synapse Analytics](#synapse-analytics)
+- [Synapse - Public access](#synapse-public-access)
+- [Synapse - Public access with Managed VNET](#synapse-public-access-with-managed-vnet)
+- [Synapse - Public access with Managed VNET and Customer VNET](#synapse-public-access-with-managed-vnet-and-customer-vnet)
+- [Synapse - Private access](#synapse-private-access)
+
 
 :point_right: ***Legend***
 In the network diagrams below, arrows indicate the direction of TCP connections. This is not necessarily the same as the direction of flow of information. In the context of network infrastructure it is relevant to show "inbound" versus "outbound" at the TCP level. 
