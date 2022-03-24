@@ -1,16 +1,16 @@
 # Networking for Azure Data & Analytics Services - Part 1
-Azure features a number of services for manipulation and analysis of data. These services are functionally different and serve different purposes (with some overlap), but there are common themes between them from an infrastructure perspective:
+Azure features a number of services for manipulation and analysis of data. These services are functionally different and serve different purposes (although some overlap exists), but there are common themes between them from an infrastructure perspective:
 - A multi-tenant control plane, operated through a GUI presented in a web portal.
 - A data plane running on customer-dedicated compute
 - The data plane processes customer data stored in Azure PaaS, on-premise or in other clouds.
 
 The default network strategy for these services is to use public, internet facing endpoints for both the compute and data planes, with security guaranteed through strong authentication, authorization and encryption. This provides for great ease of use "out-of-the-box", as there are no network boundaries or restrictions to contend with.
 
-However, customers are concerned about the security of their data when public endpoints, foreign compute instances attached to their network and multi-tenant service components are involved. Enterprises often have security policies that require data to be accessed through private network endpoints only. Some also restrict public access to service control planes.
+However, customers are concerned about the security of their data when public endpoints, foreign compute instances attached to their network and multi-tenant service components are involved. Enterprise security policies often require data to be accessed through private network endpoints only. Some enterprise customers also restrict public access to service control planes.
 
 In response to customer requirements and concerns over network access to data and control planes, features and functions have been added to Data & Analytics services over time. These achieve varying levels of private and restricted access to data and control, but implementations differ between services.
 
-This two-part article aims to summarize networking functionality across Azure Data & Analytics Services in a consistent format. It is not intended to replace service documentation published 
+This two-part article aims to summarize networking functionality across Azure Data & Analytics Services in a consistent format. It is not intended to replace service documentation published on docs.microsoft.com. In case of differences between this article and service documentation, the latter prevails and should be used for reference. 
 
 This Part 1 addresses [Azure Data Factory (v2)](https://docs.microsoft.com/en-us/azure/data-factory/), [Purview](https://docs.microsoft.com/en-us/azure/purview/) and [Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/). Part 2 will cover HDInsight, Databricks and Azure Machine Learning.
 
@@ -36,7 +36,7 @@ Network diagrams are available in Visio [here](images/Data_AI_network.vsdx).
 - [Synapse - Private access](#synapse-private-access)
 
 
-:point_right: ***Legend***
+## Legend
 In the network diagrams below, arrows indicate the direction of TCP connections. This is not necessarily the same as the direction of flow of information. In the context of network infrastructure it is relevant to show "inbound" versus "outbound" at the TCP level. 
 
 Color coding of flows:
@@ -354,30 +354,75 @@ When the customer has data sources in multiple regions, it is recommended to dep
 
 
 ## Synapse Analytics
-Azure Synapse Analytics combines SQL-based data warehousing (fka SQL Data Warehouse) with Apache Spark big data analytics, Kusto Data Explorer for log- and timeseries analytics, and Data integration ETL/ELT pipeline functionality. 
+Azure Synapse Analytics combines SQL-based data warehousing (fka SQL Data Warehouse) with Apache Spark big data analytics, Kusto Data Explorer for log- and timeseries analytics. It also brings the Data movement ETL/ELT pipeline and SQL Server Integration Services (SSIS) capabilities of ADFv2. 
 
-Azure Synapse 
+Synapse uses customer-dedicated compute to provide the Apache Spark, Data Explorer, Data movement and SSIS capabilities. As with ADFv2 and Purview, this compute can be deployed in a Public/shared network, or be injected in Managed or customer-owned VNETs.
 
+SQL On-demand and Dedicated Pools are provided on the multi-tenant Azure SQL platform and cannot be VNET injected. Private network access to SQL Pools can be provided through Managed or customer Private Endpoints, from the Managed VNET or a customer-owned VNET.
 
 ### Synapse Public access
-This is the default network configuration.
+This is the default workspace network configuration, deployed by selecting Disable for Managed virtual network in the Networking tab when creating the workspace.
+![image](images/Synapse-Public-create-portal.png)
+
+Apache Spark- and Data Explorer Pools and Azure Integration Runtimes are deployed in a shared VNET, connecting to Paas resources via public endpoints only.
+
+:point_right:***Properties***
+- The Studio web portal at https://web.azuresynapsenet/ and workspace endpoints are accessible over the public endpoint only. Public access can be limited via firewall rules.
+- Apache Spark- and Data Explorer Pools, and Azure Integration Runtimes are deployed in a shared VNET and connect to Paas resources via public endpoints. 
+- Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+- Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
+must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
+- It is not possible to restrict access to Paas services to Synapse managed runtimes from a specific Synapse account. Use Managed VNET with Managed Private Endpoints or a Self-Hosted Integration Runtime if network-level access restriction to a specific runtime instance is required.
 
 ![image](images/Synapse-Public.png)
 
 ### Synapse Public access with Managed VNET 
+The Managed VNET configuration is deployed by selecting Enable for Managed virtual network in the Networking tab when creating the workspace. This also enables Private Endpoint connectivity to the Studio and workspace endpoints.
 
-Managed VNET
+![image](images/Synapse-Public-ManagedVNET-create-portal.png)
+
+Apache Spark- and Data Explorer Pools and Azure Integration Runtimes are deployed in a Managed VNET, and connect to Paas resources either via public endpoints or via Managed Private Endpoints. Managed PE's to the default Data Lake, SQL Server and SQL Ondemand Pool, required for operation of the workspace, are pre-provisioned. Managed PE's to customer data stores are provisioned through the Studio portal.
+
+:point_right:***Properties***
+- The Studio web portal at https://web.azuresynapsenet/ and workspace endpoints are accessible over the public endpoint or a Private Endpoint. Public access can either be disabled completely, or be limited via firewall rules.
+- Apache Spark- and Data Explorer Pools, and Azure Integration Runtimes are deployed in a Managed VNET and connect to Paas resources either via public endpoints or Managed Private Endpoints. 
+- Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+- Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
+must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
 
 ![image](images/Synapse-Public-ManagedVNET.png)
 
-Managed VNET + Managed PE
+Managed Private Endpoints are deployed into the Managed VNET from Studio
+
+![image](images/Synapse-Public-ManagedVNET-ManagedPE-create-studio.png)
 
 ![image](images/Synapse-Public-ManagedVNET-ManagedPE.png)
 
-### Synapse Public access with Managed VNET and Customer VNET
+### Synapse Public access with Managed VNET and customer VNET
+A customer VNET can contain Self Hosted- and SSIS Integration Runtimes, and Private Endpoints to the Synapse Workspace subresources. The /Dev subresource connects to the Workspace API, /Sql and /SqlOnDemand connect to the SQL Pools.
+
+Workspace Public network access can now be set to Disabled on the Networking page of the Workspace in the Azure Portal.
+
+:point_right: Synapse Studio is still accessed over a public endpoint, requiring outbound internet access from client workstations.
 
 ![image](images/Synapse-Public-ManagedVNET-ManagedPE-SHIR.png)
 
 ### Synapse Private access
+Synapse Private Link Hub provides Private Endpoint connectivity to the Studio, so that no outbound internet is required from client workstations.
 
-![image](images/Synapse-Private-ManagedVNET-ManagedPE-SHIR.png)
+Synapse Private Link Hub is a top-level separate resource, created in the Azure portal.
+
+![image](images/Synapse-PrivateLinkHub-create-portal.png)
+
+A Private Endpoint connecting to the Private Link Hub's Web sub-resource is then deployed in the customer's VNET. This provides private access to the Studio from the VNET, peered VNETs or on-premise.
+
+![image](images/Synapse-PrivateLinkHub-PE-overview.png)
+
+
+ DNS resolution from web.privatelink.azuresynapse.net to the PE's private IP address is required. The portal experience creates a Private DNS zone, when deploying through code this must arranged separately.
+
+![image](images/Synapse-PrivateLinkHub-PE-DNS.png)
+
+![image](images/Synapse-PrivateLinkHub-ManagedVNET-ManagedPE-SHIR.png)
