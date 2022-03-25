@@ -356,6 +356,8 @@ When the customer has data sources in multiple regions, it is recommended to dep
 ## Synapse Analytics
 Azure Synapse Analytics combines SQL-based data warehousing (fka SQL Data Warehouse) with Apache Spark big data analytics, Kusto Data Explorer for log- and timeseries analytics. It also brings the Data movement ETL/ELT pipeline and SQL Server Integration Services (SSIS) capabilities of ADFv2. 
 
+![image](https://docs.microsoft.com/en-us/azure/synapse-analytics/media/overview-what-is/synapse-architecture.png)
+
 Synapse uses customer-dedicated compute to provide the Apache Spark, Data Explorer, Data movement and SSIS capabilities. As with ADFv2 and Purview, this compute can be deployed in a Public/shared network, or be injected in Managed or customer-owned VNETs.
 
 SQL On-demand and Dedicated Pools are provided on the multi-tenant Azure SQL platform and cannot be VNET injected. Private network access to SQL Pools can be provided through Managed or customer Private Endpoints, from the Managed VNET or a customer-owned VNET.
