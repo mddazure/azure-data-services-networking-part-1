@@ -328,8 +328,12 @@ This configuration sets Public network access to Deny on the Purview account.
 
 ![image](images/Purview-deny-public-portal.png)
 
-This enables private-only client access to the Studio portal, through a Private Endpoint connection to the Portal and Account sub-resources of the Purview account. Studio access from on-premise can be achieved through VPN or ExpreesRoute connections to the VNET where the PE's to the Portal and Account are located.
+This enables private-only client access to the Studio portal, through a Private Endpoint connection to the Portal and Account sub-resources of the Purview account. 
+Studio access from on-premise can be achieved through VPN or ExpreesRoute connections to the VNET where the PE's to the Portal and Account are located.
 Private access from SHIR to the Purview control plane is through a Private Endpoint to the Account sub-resource. These Private Endpoints are created in the Azure portal under the Purview account, on the Settings - Networking page, Private endpoint connections tab.
+
+![image](images/Purview-PE-create-portal.png)
+
 
 Ingestion is through the Ingestion Private Endpoint Connection, which consists of Private Endpoints to blob- and queue storage in the managed Storage account, and to the managed Event Hub namespace.
 
@@ -402,7 +406,7 @@ Managed Private Endpoints are deployed into the Managed VNET from Studio
 
 ![image](images/Synapse-Public-ManagedVNET-ManagedPE.png)
 
-### Synapse Public access with Managed VNET and customer VNET
+### Synapse Private access with Managed VNET and customer VNET
 A customer VNET can contain Self Hosted- and SSIS Integration Runtimes, and Private Endpoints to the Synapse Workspace subresources. The /Dev subresource connects to the Workspace API, /Sql and /SqlOnDemand connect to the SQL Pools.
 
 Workspace Public network access can now be set to Disabled on the Networking page of the Workspace in the Azure Portal.
