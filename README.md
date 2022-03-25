@@ -407,9 +407,11 @@ Managed Private Endpoints are deployed into the Managed VNET from Studio
 ![image](images/Synapse-Public-ManagedVNET-ManagedPE.png)
 
 ### Synapse Partial Private access with Managed VNET and customer VNET
-A customer VNET can contain Self Hosted- and SSIS Integration Runtimes, and Private Endpoints to the Synapse Workspace subresources. The /Dev subresource connects to the Workspace API, /Sql and /SqlOnDemand connect to the SQL Pools.
+A customer VNET can contain Self Hosted- and SSIS Integration Runtimes, and Private Endpoints to the Synapse Workspace subresources. The /Dev subresource connects to the Workspace API, /Sql and /SqlOnDemand connect to the SQL Pools. These Private Endpoints must be created separately in the Azure portal.
+![image](images/Synapse-PE-create-portal.png)
 
 Workspace Public network access can now be set to Disabled on the Networking page of the Workspace in the Azure Portal.
+![image](images/Synapse-Private-networking-portal.png)
 
 :point_right: Synapse Studio is still accessed over a public endpoint, requiring outbound internet access from client workstations.
 
