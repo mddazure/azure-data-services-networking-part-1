@@ -4,7 +4,7 @@ Azure features a number of services for manipulation and analysis of data. These
 - A data plane running on customer-dedicated compute
 - The data plane processes customer data stored in Azure PaaS, on-premise or in other clouds.
 
-The default network strategy for these services is to use public, internet facing endpoints for both the compute and data planes, with security guaranteed through strong authentication, authorization and encryption. This provides for great ease of use "out-of-the-box", as there are no network boundaries or restrictions to contend with.
+The default network strategy for these services is to use public, internet facing endpoints for both the control and data planes, with security guaranteed through strong authentication, authorization and encryption. This provides for great ease of use "out-of-the-box", as there are no network boundaries or restrictions to contend with.
 
 However, customers are concerned about the security of their data when public endpoints, foreign compute instances attached to their network and multi-tenant service components are involved. Enterprise security policies often require data to be accessed through private network endpoints only. Some enterprise customers also restrict public access to service control planes.
 
@@ -19,9 +19,9 @@ Network diagrams are available in Visio [here](images/Data_AI_network.vsdx).
 ## Contents
 [Azure Data Factory (v2)](#azure-data-factory-v2)
 - [ADFv2 - Public access](#adfv2-public-access)
-- [ADFv2 - Public access with Managed VNET](#adfv2---public-access-with-managed-vnet)
-- [ADFv2 - Public access with customer VNET](#adfv2---public-access-with-customer-vnet)
-- [ADFv2 - Private access](#adfv2---private-access)
+- [ADFv2 - Public access with Managed VNET](#adfv2-public-access-with-managed-vnet)
+- [ADFv2 - Public access with customer VNET](#adfv2-public-access-with-customer-vnet)
+- [ADFv2 - Private access](#adfv2-private-access)
 
 [Purview](#purview)
 - [Purview - Public access](#purview-public-access)
