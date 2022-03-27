@@ -112,7 +112,7 @@ This is the default network configuration.
 - Azure and Azure-SSIS Integration Runtime compute instances are managed by ADF.
 - Integration Runtimes access data stores over public endpoints.
 - Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
-:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. 
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
 - Azure Paas service firewalls on data stores can be may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
 must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
 - It is not possible to restrict access to ADF managed runtimes belonging to a specific ADF account. Use Managed VNET with Managed Private Endpoints or a Self-Hosted Integration Runtime is network-level access restriction to a specific runtime instance is required. 
@@ -261,7 +261,7 @@ This is the default network configuration.
 :exclamation:The default Public Azure Integration Runtime is always present but does *not* show in the Integration runtimes view in Purview Studio (Data Map -> Integration runtimes) 
 - Integration Runtimes access customer data stores and managed resources for ingestion over public endpoints.
 - Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
-:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
 - Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
 must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
 - It is not possible to restrict access to Purview managed runtimes belonging to a specific Purview account. Use Managed VNET with Managed Private Endpoints or a Self-Hosted Integration Runtime if network-level access restriction to a specific runtime instance is required.
@@ -284,7 +284,7 @@ Creating an Integration Runtime in a Managed VNET automatically provisions Manag
 - Runtimes can access data stores over both Managed Private Endpoints and public endpoints.
 - Ingestion is over Managed Private Endpoints.
 - Outbound traffic to public endpoints and internet is sourced from a Public IP in the general AzureCloud.{region} ranges.
-:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
 - Purview takes care of the Private DNS resolution for the Managed Private Endpoints.
 - When using Managed Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
 - When not using Managed Private Endpoints, Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account." must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
@@ -319,7 +319,7 @@ Ingestion can be over public endpoints or over Private Endpoints. The ingestion 
 - Customer must manage DNS resolution for Private Endpoints, either through Private DNS Zones or custom DNS.
 - When using Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
 - When using public endpoints, Paas service firewalls must be set to allow access from the SHIR's public IP address.
-:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses, and cannot be filtered by the Storage account firewall.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses, and cannot be filtered by the Storage account firewall. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
 
 ![image](images/Purview-Public-SHIR.png)
 
@@ -349,7 +349,7 @@ Ingestion is through the Ingestion Private Endpoint Connection, which consists o
 - Customer must manage DNS resolution for Private Endpoints, either through Private DNS Zones or custom DNS.
 - When using Private Endpoints, Azure Paas service firewalls on data stores can be set to deny public access. 
 - When using public endpoints, Paas service firewalls must be set to allow access from the SHIR's public IP address.
-:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses, and cannot be filtered by the Storage account firewall.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses, and cannot be filtered by the Storage account firewall. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
 
 When the customer has data sources in multiple regions, it is recommended to deploy SHIRs in each region. This minimizes  network latency for data flows between sources and SHIRs, optimizing scan performance. Only metadata resulting from scans are sent cross-region to central ingestion resources.
 
@@ -376,7 +376,7 @@ Apache Spark- and Data Explorer Pools and Azure Integration Runtimes are deploye
 - The Studio web portal at https://web.azuresynapsenet/ and workspace endpoints are accessible over the public endpoint only. Public access can be limited via firewall rules.
 - Apache Spark- and Data Explorer Pools, and Azure Integration Runtimes are deployed in a shared VNET and connect to Paas resources via public endpoints. 
 - Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
-:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
 - Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
 must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
 - It is not possible to restrict access to Paas services to Synapse managed runtimes from a specific Synapse account. Use Managed VNET with Managed Private Endpoints or a Self-Hosted Integration Runtime if network-level access restriction to a specific runtime instance is required.
@@ -394,7 +394,7 @@ Apache Spark- and Data Explorer Pools and Azure Integration Runtimes are deploye
 - The Studio web portal at https://web.azuresynapsenet/ and workspace endpoints are accessible over the public endpoint or a Private Endpoint. Public access can either be disabled completely, or be limited via firewall rules.
 - Apache Spark- and Data Explorer Pools, and Azure Integration Runtimes are deployed in a Managed VNET and connect to Paas resources either via public endpoints or Managed Private Endpoints. 
 - Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
-:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses.
+:exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
 - Azure Paas service firewalls on data stores may be used to restrict network access, but the exception "Allow Azure services on the trusted services list to access this storage account."
 must be enabled. This allows ADF to access the data stores, as described in [Trusted access based on a managed identity](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#trusted-access-based-on-a-managed-identity).
 
