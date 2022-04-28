@@ -418,6 +418,8 @@ Workspace Public network access can now be set to Disabled on the Networking pag
 
 :point_right: Synapse Studio is still accessed over a public endpoint, requiring outbound internet access from client workstations.
 
+:exclamation:Synapse does **not** support a Private Endpoint for SHIR management. A Synapse SHIR must always have outbound internet access to the shared Cloud Service Endpoint at https://we.frontend.clouddatahub.net/, in addition to the Service URLs listed in Synapse Studio under Edit integration runtime -> Nodes. (Datafactory supports a Private Endpoint to the /dataFactory sub-resource, which provides private access to the dedicated Cloud Service Endpoint at https://{account}.{region}.datafactory.azure.net/). 
+
 ![image](images/Synapse-Public-ManagedVNET-ManagedPE-SHIR.png)
 
 ### Synapse Full Private access
