@@ -32,8 +32,8 @@ Network diagrams are available in Visio [here](images/Data_AI_network.vsdx).
 [Synapse Analytics](#synapse-analytics)
 - [Synapse - Public access](#synapse-public-access)
 - [Synapse - Public access with Managed VNET](#synapse-public-access-with-managed-vnet)
-- [Synapse - Public access with Managed VNET and Customer VNET](#synapse-public-access-with-managed-vnet-and-customer-vnet)
-- [Synapse - Private access](#synapse-private-access)
+- [Synapse - Partial Private access with Managed VNET and customer VNET](#synapse-partial-private-access-with-managed-vnet-and-customer-vnet)
+- [Synapse - Full Private access](#synapse-full-private-access)
 
 
 ## Legend
@@ -374,6 +374,9 @@ Apache Spark- and Data Explorer Pools and Azure Integration Runtimes are deploye
 
 :point_right:***Properties***
 - The Studio web portal at https://web.azuresynapsenet/ and workspace endpoints are accessible over the public endpoint only. Public access can be limited via firewall rules.
+- Public / Private network access selection feature is only available with Managed VNET configured.However, Synapse workspaces can still be opened to the public network, regardless of association with Managed Vnet, by setting workspace firewall rules. 
+Without Managed VNET, workspace firewall can be set to allow 0.0.0.0 – 255.255.255.255 to permit public access, see [Azure Synapse Analytics connectivity settings](
+https://docs.microsoft.com/en-us/azure/synapse-analytics/security/connectivity-settings).
 - Apache Spark- and Data Explorer Pools, and Azure Integration Runtimes are deployed in a shared VNET and connect to Paas resources via public endpoints. 
 - Outbound traffic from Integration Runtimes is sourced from a Public IP in the DataFactory.{region} ranges.
 :exclamation:Connections to Storage accounts in the same region as the Integration Runtime originate from internal Azure data center addresses. Access from VMs in same Azure region is blocked when set to “Allow access from Selected networks”, and cannot be enabled by allowing VM Public IP, see [Grant access from an internet IP range](https://docs.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal#grant-access-from-an-internet-ip-range). Use Service Endpoints or Private Endpoints to allow access.
